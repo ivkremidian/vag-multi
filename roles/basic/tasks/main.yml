@@ -1,0 +1,4 @@
+- name: "Installing Packages"
+  apt:
+    pkg: [ 'vim', 'git', 'dnsutils', 'at', 'ntp', 'lvm2' ]
+    state: present

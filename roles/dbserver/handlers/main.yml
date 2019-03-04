@@ -1,0 +1,27 @@
+- name: mysql-socket-fix 
+  shell: echo run >> /root/hello
+    sudomysql -uroot -e "update mysql.user set plugin='mysql_native_password' WHERE User='root';"
+    mysql -uroot -e "update mysql.user set password='' WHERE User='root';"
+    mysql -uroot -e "flush privileges"
+  notify: update-root-user-password
+
+- name: update-root-user-password
+  mysql_user:
+    user: root
+    password: abc123
+  notify: update-root-my.cnf
+
+- name: update-root-my.cnf
+  template:
+      src: files/.my.cnf
+      dest: /root/.my.cnf
+
+
+
+
+- name: mysql-restart
+  service:
+    name: mysql
+    state: restarted 
+
+

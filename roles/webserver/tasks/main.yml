@@ -1,0 +1,58 @@
+- name: "Updating APT"
+  apt:
+    update_cache: no
+
+- name: "Installing apache"
+  apt:
+    name: apache2
+    state: present
+
+- name: "Installing PHP"
+  apt:
+    name: php,php-mysql
+    state: present 
+  notify:
+    - apache-restart 
+
+- name: "installing mysql - client"
+  apt:
+          name: mysql-client
+          state: present
+
+- name: "Downloading Wordpress"
+  get_url:
+    url: https://wordpress.org/latest.tar.gz
+    dest: /usr/src/latest.tar.gz
+- name: "Unpacking Wordpress"
+  unarchive:
+    remote_src: yes
+    src: /usr/src/latest.tar.gz
+    dest: /var/www/
+    owner: www-data
+    group: www-data 
+
+- name: "Writing WP-Config"
+  template:
+    src: files/wp-config.php
+    dest: /var/www/wordpress/wp-config.php
+
+- name: "Copying Vhost configuration for Wordpress on Box1"
+  template:
+    src: files/wordpress_box1.conf
+    dest: /etc/apache2/sites-available/wordpress.conf
+  when: ansible_facts['hostname'] == "box1"
+
+- name: "Copying Vhost configuration for Wordpress on Box2"
+  template:
+    src: files/wordpress_box2.conf
+    dest: /etc/apache2/sites-available/wordpress.conf
+  when: ansible_facts['hostname'] == "box2"
+
+- name: "Enabling Site"
+  file:
+    path: /etc/apache2/sites-enabled/wordpress.conf
+    src: /etc/apache2/sites-available/wordpress.conf
+    state: link
+  notify: 
+    - apache-restart
+

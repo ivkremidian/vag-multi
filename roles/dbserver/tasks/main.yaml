@@ -1,0 +1,40 @@
+- name: "Installing MySQL"
+  apt:
+    pkg: mariadb-server-10.1
+    state: present
+- name: "Installing PyMysql requirement"
+  apt:
+    name: python-pymysql
+    state: present
+  notify: mysql-socket-fix
+
+- name: "Bind to external port"
+  ini_file:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    section: mysqld
+    option: bind-address
+    value: 0.0.0.0
+    backup: yes
+  notify:
+    - mysql-restart
+
+
+- name: "Create WP database"
+  mysql_db:
+          name: wordpress_db
+
+- name: "create mysql user for box1"
+  mysql_user:
+          host: 192.168.33.10
+          user: wpuser
+          password: wpuser_pass
+          priv: 'wordpress_db.*:ALL'
+          state: present
+
+- name: "create mysql user for box2"
+  mysql_user:
+          host: 192.168.33.20
+          user: wpuser
+          password: wpuser_pass
+          priv: 'wordpress_db.*:ALL'
+          state: present
